@@ -54,7 +54,6 @@ nea-physics-app/
 ## 📌 Notes
 
 - Designed for NEA A-Level standard
-- Easily portable to Android using **Buildozer**
 - Image processing works best with clean input or scanned handwritten problems
 
 ---
