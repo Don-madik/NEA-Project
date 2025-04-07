@@ -1,17 +1,19 @@
-
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.filemanager import MDFileManager
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.scrollview import MDScrollView
-from kivymd.uix.card import MDCard
 from kivy.uix.image import Image
-from kivy.uix.popup import Popup
-from backend import ImageProcessor, PhysicsAI, AdvancedPhysicsSolvers, NLPProcessor
+from backend import ImageProcessor, PhysicsAI
+from kivymd.uix.card import MDCard
+from kivymd.uix.scrollview import MDScrollView
+import re
+
+# Function to extract variables (single-letter) from the equation
+def extract_variables(equation: str) -> list:
+    return re.findall(r'\b[a-zA-Z]\b', equation)  # Finds single-letter variables
+
 
 class NEAInterface(MDApp):
     def build(self):
@@ -70,9 +72,30 @@ class NEAInterface(MDApp):
         self.image_display.texture = tex
 
     def call_solve_equation(self, instance):
+        print("Button clicked!")
         equation = self.equation_input.text.strip()
+
+        # Step 1: Extract variables from the equation
+        variables = extract_variables(equation)
+
+        # Step 2: Create input fields dynamically for missing variables
+        knowns = {}
+        for var in variables:
+            # Dynamically check if an input field exists for each variable
+            input_field = getattr(self, f"{var}_input", None)
+            if input_field:  # If input field exists
+                user_input = input_field.text.strip()
+                if user_input:
+                    knowns[var] = user_input
+
+        if not knowns:
+            self.result_label.text = "Please enter values for all missing variables."
+            return
+
+        # Step 3: Pass the knowns into PhysicsAI to solve the equation
         ai = PhysicsAI()
-        result = ai.classify_equation_type(equation)
+        result = ai.solve_equation(equation, knowns)
+
         self.result_label.text = f"Result:\n{result}"
 
 if __name__ == "__main__":

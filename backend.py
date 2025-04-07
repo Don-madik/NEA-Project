@@ -1,16 +1,18 @@
-
 import cv2
 import numpy as np
 import pytesseract
 import logging
 import math
 import re
-import random
 from googletrans import Translator
+from Physics_solver.unit_parser import UnitParser
+from Physics_solver.unit_store import UnitAwareVariableStore
+from Physics_solver.equation_parser import EquationParser
+from Physics_solver.equation_solver import EquationSolver
+
 
 # Setup logging
 logging.basicConfig(filename='backend.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 translator = Translator()
 
 class ImageProcessor:
@@ -81,6 +83,29 @@ class PhysicsAI:
     def __init__(self):
         self.weights = np.random.rand(5)
 
+    def solve_equation(self, equation: str, knowns: dict) -> str:
+        """
+        Solve the equation using the EquationSolver pipeline.
+        """
+        try:
+            # Step 1: Parse the equation to identify variables
+            parser = EquationParser(equation)
+            parser.validate_format()
+            parser.parse()
+            parser.extract_variables()
+
+            # Step 2: Store the knowns (user input)
+            store = UnitAwareVariableStore(knowns)
+
+            # Step 3: Solve the equation using the solver
+            solver = EquationSolver(parser, store)
+            result = solver.solve_equation()
+
+            return result
+        except Exception as e:
+            logging.error(f"PhysicsAI Error: {e}")
+            return f"Error: {str(e)}"
+
     def predict_missing_value(self, params):
         try:
             if "force" in params and "mass" in params:
@@ -129,10 +154,10 @@ class NLPProcessor:
     def parse_input(self, user_input):
         try:
             user_input = user_input.lower()
-            match = re.search(r'find the acceleration when force is (\d+)n and mass is (\d+)kg', user_input)
+            match = re.search(r'find the (acceleration|force) when (\w+) is (\d+) and (\w+) is (\d+)', user_input)
             if match:
-                force, mass = map(int, match.groups())
-                return f"{force} / {mass}"
+                variable, val1, val1_num, val2, val2_num = match.groups()
+                return f"{val1}={val1_num}, {val2}={val2_num}, {variable}?"
             return "Error: Could not parse input"
         except Exception as e:
             logging.error(f"Error parsing natural language input {user_input}: {e}")
