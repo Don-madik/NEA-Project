@@ -5,7 +5,6 @@ import logging
 import math
 import re
 from googletrans import Translator
-from Physics_solver.unit_parser import UnitParser
 from Physics_solver.unit_store import UnitAwareVariableStore
 from Physics_solver.equation_parser import EquationParser
 from Physics_solver.equation_solver import EquationSolver
