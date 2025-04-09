@@ -17,6 +17,7 @@ class UnitAwareVariableStore:
         """
         for var, value in known_inputs.items():
             try:
+                var = var.lower()  # Normalize variable names to lowercase.
                 # Parse the string (e.g. "100 N", "9.8 m/s^2") using Pint.
                 q = ureg(value)
                 self.original[var] = q

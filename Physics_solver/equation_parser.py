@@ -2,27 +2,23 @@ import re
 
 class EquationParser:
     def __init__(self, equation: str):
-        self.equation = equation
+        # Normalize: lowercase and replace '^' with '**'
+        self.original_equation = equation.strip().replace("^", "**").lower()
         self.lhs = ""
         self.rhs = ""
         self.variables = []
+        self.parse_equation()
 
-    def validate_format(self) -> bool:
-        if '=' not in self.equation:
-            raise ValueError("Equation must contain an '=' sign.")
-        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/^=(). ")
-        for char in self.equation:
-            if char not in allowed_chars:
-                raise ValueError(f"Invalid character detected in equation: '{char}'")
-        return True
+    def parse_equation(self):
+        if "=" not in self.original_equation:
+            raise ValueError("Equation must contain '=' symbol")
 
-    def parse(self) -> tuple[str, str]:
-        lhs, rhs = self.equation.split('=')
-        self.lhs = lhs.strip()
-        self.rhs = rhs.strip()
-        return self.lhs, self.rhs
+        self.lhs, self.rhs = map(str.strip, self.original_equation.split("=", 1))
 
-    def extract_variables(self) -> list[str]:
-        tokens = re.findall(r'\b[a-zA-Z]\b', self.equation)
-        self.variables = list(set(tokens))
-        return self.variables
+        # Extract variable names using regex (identifiers only)
+        matches = re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b", self.original_equation)
+
+        # Exclude function names like 'sin', 'cos', etc. if needed (you can customize this)
+        blacklist = {"sin", "cos", "tan", "log", "ln", "sqrt"}
+        self.variables = [var.lower() for var in matches if var.lower() not in blacklist and var.lower() != "e"]
+

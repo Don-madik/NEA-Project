@@ -141,7 +141,8 @@ class IntegratedPhysicsSolverApp(MDApp):
                 unknown_count += 1
             else:
                 # Do not preprocess these values—they should be passed as-is (e.g., "100 N").
-                knowns[var] = val
+                knowns[var.lower()] = val # Store as lowercase for consistency.
+
         
         if unknown_count != 1:
             self.result_label.text = "Exactly one variable must be left blank for the unknown."
