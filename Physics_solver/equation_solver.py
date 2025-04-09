@@ -45,13 +45,16 @@ class EquationSolver:
 
     def evaluate_expression(self, expression: str):
         """
-        Safely evaluates an expression with units using Pint.
+        Evaluates a unit expression and simplifies to standard units like N or J.
         """
         try:
             result = ureg.parse_expression(expression).to_base_units()
-            return result
+            simplified = result.to_compact()  # ← best for unit names like N, J, etc.
+            return simplified
         except Exception as e:
             raise ValueError(f"Error evaluating expression with units: {expression} → {str(e)}")
+
+
 
     def solve_equation(self) -> str:
         if not self.unknown:
@@ -61,7 +64,25 @@ class EquationSolver:
         substituted = self.substitute_values(rhs)
         result = self.evaluate_expression(substituted)
 
-        value = round(result.magnitude, 2)
-        unit = str(result.units)
+        # Try automatic simplification
+        simplified = result.to_compact()
+
+        # 🔁 Force specific units for known physics variables
+        try:
+            if self.unknown.lower() in ["f", "force"]:
+                simplified = result.to("newton")
+            elif self.unknown.lower() in ["e", "energy"]:
+                simplified = result.to("joule")
+            elif self.unknown.lower() in ["p", "power"]:
+                simplified = result.to("watt")
+            elif self.unknown.lower() in ["v", "voltage"]:
+                simplified = result.to("volt")
+            elif self.unknown.lower() in ["q", "charge"]:
+                simplified = result.to("coulomb")
+        except Exception as e:
+            pass  # fallback to .to_compact() result if unknown
+
+        value = round(simplified.magnitude, 2)
+        unit = str(simplified.units)
 
         return f"{self.unknown} = {value} {unit}"
