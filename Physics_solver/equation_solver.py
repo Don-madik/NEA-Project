@@ -1,4 +1,7 @@
 from Physics_solver.unit_store import UnitAwareVariableStore
+from pint import UnitRegistry
+
+ureg = UnitRegistry()
 
 class EquationSolver:
     def __init__(self, parser, variable_store: UnitAwareVariableStore):
@@ -27,22 +30,23 @@ class EquationSolver:
             self.unknowns = missing
             raise ValueError(f"Multiple unknown variables found: {missing}. Cannot solve yet.")
 
-    def get_unknown_unit(self) -> str:
-        if not self.unknown:
-            raise Exception("Unknown variable not determined yet.")
-        return self.unknown_unit
-
     def substitute_values(self, expression: str) -> str:
-        for var, value in self.knowns.items():
-            expression = expression.replace(var, str(value))
+        """
+        Replaces variables with values (including units as strings) in the equation.
+        """
+        for var, (value, unit) in self.store.converted.items():
+            expression = expression.replace(var, f"{value} * {unit}")
         return expression
 
-    def evaluate_expression(self, expression: str) -> float:
+    def evaluate_expression(self, expression: str):
+        """
+        Safely evaluates an expression with units using Pint.
+        """
         try:
-            result = eval(expression)
+            result = ureg.parse_expression(expression).to_base_units()
+            return result
         except Exception as e:
-            raise ValueError(f"Error evaluating expression: {expression} → {str(e)}")
-        return result
+            raise ValueError(f"Error evaluating expression with units: {expression} → {str(e)}")
 
     def solve_equation(self) -> str:
         if not self.unknown:
@@ -51,6 +55,8 @@ class EquationSolver:
         rhs = self.parser.rhs
         substituted = self.substitute_values(rhs)
         result = self.evaluate_expression(substituted)
-        result = round(result, 2)
-        unit = self.get_unknown_unit()
-        return f"{self.unknown} = {result} {unit}"
+
+        value = round(result.magnitude, 2)
+        unit = str(result.units)
+
+        return f"{self.unknown} = {value} {unit}"
