@@ -1,6 +1,6 @@
 from Physics_solver.unit_store import UnitAwareVariableStore
 from pint import UnitRegistry
-
+import re
 ureg = UnitRegistry()
 
 class EquationSolver:
@@ -32,11 +32,16 @@ class EquationSolver:
 
     def substitute_values(self, expression: str) -> str:
         """
-        Replaces variables with values (including units as strings) in the equation.
+        Replaces variables with values (with units) using safe regex substitution.
+        Prevents partial replacements inside unit names like 'meter'.
         """
         for var, (value, unit) in self.store.converted.items():
-            expression = expression.replace(var, f"{value} * {unit}")
+            replacement = f"({value} * {unit})"
+            # Only replace whole variable words
+            expression = re.sub(rf'\b{re.escape(var)}\b', replacement, expression)
         return expression
+
+
 
     def evaluate_expression(self, expression: str):
         """
