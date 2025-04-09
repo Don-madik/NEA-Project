@@ -64,25 +64,27 @@ class EquationSolver:
         substituted = self.substitute_values(rhs)
         result = self.evaluate_expression(substituted)
 
-        # Try automatic simplification
-        simplified = result.to_compact()
+        # 🔁 Force common physics units where applicable
+        preferred_units = {
+            "f": "newton",
+            "e": "joule",
+            "p": "watt",
+            "v": "volt",
+            "q": "coulomb",
+            "t": "second",
+            "m": "kilogram",
+            "a": "meter / second ** 2",
+        }
 
-        # 🔁 Force specific units for known physics variables
         try:
-            if self.unknown.lower() in ["f", "force"]:
-                simplified = result.to("newton")
-            elif self.unknown.lower() in ["e", "energy"]:
-                simplified = result.to("joule")
-            elif self.unknown.lower() in ["p", "power"]:
-                simplified = result.to("watt")
-            elif self.unknown.lower() in ["v", "voltage"]:
-                simplified = result.to("volt")
-            elif self.unknown.lower() in ["q", "charge"]:
-                simplified = result.to("coulomb")
+            forced_unit = preferred_units.get(self.unknown.lower())
+            if forced_unit:
+                result = result.to(forced_unit)
         except Exception as e:
-            pass  # fallback to .to_compact() result if unknown
+            pass  # fallback to whatever Pint returns by default
 
-        value = round(simplified.magnitude, 2)
-        unit = str(simplified.units)
+        value = round(result.magnitude, 2)
+        unit = str(result.units)
 
         return f"{self.unknown} = {value} {unit}"
+

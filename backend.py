@@ -90,8 +90,8 @@ class PhysicsAI:
             # Step 1: Parse the equation to identify variables
             parser = EquationParser(equation)
             parser.validate_format()
-            parser.parse()
-            parser.extract_variables()
+            #parser.parse()
+            #parser.extract_variables()
 
             # Step 2: Store the knowns (user input)
             store = UnitAwareVariableStore(knowns)
