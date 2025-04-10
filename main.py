@@ -105,7 +105,8 @@ class IntegratedPhysicsSolverApp(MDApp):
         self.fields_box.clear_widgets()
         
         # Extract variables from the processed equation.
-        self.variables = list(set(re.findall(r'\b[a-zA-Z]\b', processed_eq)))
+        self.variables = list(set(re.findall(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', processed_eq)))
+
         
         # Create a dynamic text field for each variable.
         for var in self.variables:
@@ -131,26 +132,22 @@ class IntegratedPhysicsSolverApp(MDApp):
             return
 
         knowns = {}
-        unknown_count = 0
-        
+
         # Gather known values from each field.
         for child in self.fields_box.children:
             var = child.variable_name
             val = child.text.strip()
-            if val == "":
-                unknown_count += 1
-            else:
-                # Do not preprocess these values—they should be passed as-is (e.g., "100 N").
-                knowns[var.lower()] = val # Store as lowercase for consistency.
+            if val != "":
+                knowns[var.lower()] = val  # Store as lowercase for consistency
 
-        
-        if unknown_count != 1:
-            self.result_label.text = "Exactly one variable must be left blank for the unknown."
+        # Check for missing (blank) variables
+        missing = [v for v in self.variables if v.lower() not in knowns]
+        if len(missing) != 1:
+            self.result_label.text = f"Exactly one variable must be left blank. Found {len(missing)} missing."
             return
-        
+
         try:
             physics_ai = PhysicsAI()
-            # The PhysicsAI class should internally use UnitAwareVariableStore from unit_store.py.
             result = physics_ai.solve_equation(self.processed_equation, knowns)
             self.result_label.text = f"{result}"
         except Exception as e:

@@ -1,3 +1,4 @@
+import logging
 from Physics_solver.unit_store import UnitAwareVariableStore
 from pint import UnitRegistry
 import re
@@ -57,39 +58,43 @@ class EquationSolver:
 
 
     def solve_equation(self) -> str:
-        if not self.unknown:
-            self.find_unknown_variable()
-
-        rhs = self.parser.rhs
-        substituted = self.substitute_values(rhs)
-        result = self.evaluate_expression(substituted)
-
-        # Try to simplify the unit using Pint
-        simplified = result.to_base_units().to_compact()
-
-        # Unit forcing: map variable names to preferred units
-        preferred_units = {
-            "f": "newton",
-            "e": "joule",
-            "p": "watt",
-            "v": "volt",
-            "q": "coulomb",
-            "t": "second",  # Time, could also force 'hour', 'minute', etc.
-            "m": "kilogram",  # Mass, ensuring kg
-            "a": "meter / second ** 2",  # Acceleration
-            "i": "ampere",  # Current
-            "r": "ohm"  # Resistance
-        }
-
+        """
+        Solve the equation using the EquationSolver pipeline and handle the case when a variable is missing.
+        """
         try:
-            # Check if the unknown variable has a preferred unit and apply it
-            var = self.unknown.lower()
-            if var in preferred_units:
-                simplified = simplified.to(preferred_units[var])
+            # Step 1: Identify the unknown variable
+            if not self.unknown:
+                self.find_unknown_variable()
+
+            rhs = self.parser.rhs
+            substituted = self.substitute_values(rhs)
+            result = self.evaluate_expression(substituted)
+
+            # 🔁 Force common physics units where applicable
+            preferred_units = {
+                "f": "newton",
+                "e": "joule",
+                "p": "watt",
+                "v": "volt",
+                "q": "coulomb",
+                "t": "second",
+                "m": "kilogram",
+                "a": "meter / second ** 2",
+            }
+
+            # Check if the unknown unit exists in the predefined units and force it
+            try:
+                forced_unit = preferred_units.get(self.unknown.lower())
+                if forced_unit:
+                    result = result.to(forced_unit)
+            except Exception as e:
+                pass  # fallback to whatever Pint returns by default
+
+            # Return the result with the correct unit
+            value = round(result.magnitude, 2)
+            unit = str(result.units)
+            return f"{self.unknown} = {value} {unit}"
+        
         except Exception as e:
-            pass  # If there's an error in conversion, fallback to the simplified unit
-
-        value = round(simplified.magnitude, 2)
-        unit = str(simplified.units)
-
-        return f"{self.unknown} = {value} {unit}"
+            logging.error(f"PhysicsAI Error: {e}")
+            return f"Error: {str(e)}"
