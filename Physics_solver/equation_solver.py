@@ -58,11 +58,7 @@ class EquationSolver:
 
 
     def solve_equation(self) -> str:
-        """
-        Solve the equation using the EquationSolver pipeline and handle the case when a variable is missing.
-        """
         try:
-            # Step 1: Identify the unknown variable
             if not self.unknown:
                 self.find_unknown_variable()
 
@@ -70,7 +66,10 @@ class EquationSolver:
             substituted = self.substitute_values(rhs)
             result = self.evaluate_expression(substituted)
 
-            # 🔁 Force common physics units where applicable
+            # Simplify unit to base/compact first
+            simplified = result.to_base_units().to_compact()
+
+            # Step 1: Force unit based on variable name
             preferred_units = {
                 "f": "newton",
                 "e": "joule",
@@ -80,21 +79,36 @@ class EquationSolver:
                 "t": "second",
                 "m": "kilogram",
                 "a": "meter / second ** 2",
+                "s": "meter",     # displacement
+                "i": "ampere",
+                "r": "ohm"
             }
 
-            # Check if the unknown unit exists in the predefined units and force it
             try:
-                forced_unit = preferred_units.get(self.unknown.lower())
-                if forced_unit:
-                    result = result.to(forced_unit)
-            except Exception as e:
-                pass  # fallback to whatever Pint returns by default
+                var = self.unknown.lower()
+                if var in preferred_units:
+                    simplified = simplified.to(preferred_units[var])
+            except Exception:
+                pass  # fallback to compact unit
 
-            # Return the result with the correct unit
-            value = round(result.magnitude, 2)
-            unit = str(result.units)
+            # Step 2: (optional) Fallback match on unit expression
+            unit_fallback_map = {
+                "kilogram * meter / second ** 2": "newton",
+                "kilogram * meter ** 2 / second ** 2": "joule",
+                "kilogram * meter ** 2 / second ** 3": "watt"
+            }
+            unit_str = str(simplified.units)
+
+            if unit_str in unit_fallback_map:
+                try:
+                    simplified = simplified.to(unit_fallback_map[unit_str])
+                except Exception:
+                    pass  # fallback silently
+
+            value = round(simplified.magnitude, 2)
+            unit = str(simplified.units)
             return f"{self.unknown} = {value} {unit}"
-        
+
         except Exception as e:
             logging.error(f"PhysicsAI Error: {e}")
             return f"Error: {str(e)}"
