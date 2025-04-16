@@ -1,6 +1,6 @@
 # unit_store.py
 import pint
-
+import re
 # Create a Pint unit registry.
 ureg = pint.UnitRegistry()
 
@@ -18,6 +18,10 @@ class UnitAwareVariableStore:
         for var, value in known_inputs.items():
             try:
                 var = var.lower()  # Normalize variable names to lowercase.
+                # Insert a space between a digit and the unit 'A' if it's not part of scientific notation.
+                value = re.sub(r"(?<![eE])(\d)(A)\b", r"\1 \2", value)
+                # Insert a space between a digit and 'ohm' (case insensitive) if not part of scientific notation.
+                value = re.sub(r"(?<![eE])(\d)(ohm)\b", r"\1 \2", value, flags=re.IGNORECASE)
                 # Parse the string (e.g. "100 N", "9.8 m/s^2") using Pint.
                 q = ureg(value)
                 self.original[var] = q
@@ -27,6 +31,7 @@ class UnitAwareVariableStore:
                 self.converted[var] = (q_si.magnitude, str(q_si.units))
             except Exception as e:
                 raise ValueError(f"Error processing variable '{var}' with value '{value}': {e}")
+
 
     def get_original(self, var: str):
         """Returns the original Pint quantity for a variable."""

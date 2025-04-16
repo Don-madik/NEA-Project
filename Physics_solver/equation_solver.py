@@ -1,14 +1,34 @@
 import logging
 from Physics_solver.unit_store import UnitAwareVariableStore
 from pint import UnitRegistry
+from pint.errors import DimensionalityError
 import re
+
+# Initialize UnitRegistry
 ureg = UnitRegistry()
+
+# Define the voltage dimension and unit using Pint.
+ureg.define("[voltage] = [mass] * [length]**2 / [time]**3 / [current]")
+ureg.define("volt = 1.0 * [voltage]")
+# unit_store.py (after `ureg = UnitRegistry()`):
+ureg.define("A = ampere")  # so "2A" parses as "2 * ampere"
+ureg.define("amps = ampere")
+ureg.define("ohm = ohm")   # if needed as an alias
+ureg.define("ohms = ohm")
+ureg.define("Ω = ohm")
+ureg.define("kg = kilogram")
+ureg.define("J = joule")
+ureg.define("N = newton")
+ureg.define("W = watt")
+ureg.define("C = coulomb")
+# Optional: print definition to verify
+print(ureg["volt"])  # Should print something like "volt = [voltage]"
 
 class EquationSolver:
     def __init__(self, parser, variable_store: UnitAwareVariableStore):
         self.parser = parser
         self.store = variable_store
-        self.knowns = variable_store.as_dict()
+        self.knowns = variable_store.as_dict()  # Known variable magnitudes in SI units.
         self.unknown = None
         self.unknowns = []
         self.unknown_unit = None
@@ -33,77 +53,83 @@ class EquationSolver:
 
     def substitute_values(self, expression: str) -> str:
         """
-        Replaces variables with values (with units) using safe regex substitution.
-        Prevents partial replacements inside unit names like 'meter'.
+        Replaces variables with their numeric values (with units) using safe regex substitution.
+        This prevents partial replacement inside longer unit names.
         """
         for var, (value, unit) in self.store.converted.items():
             replacement = f"({value} * {unit})"
-            # Only replace whole variable words
             expression = re.sub(rf'\b{re.escape(var)}\b', replacement, expression)
         return expression
 
-
-
     def evaluate_expression(self, expression: str):
         """
-        Evaluates a unit expression and simplifies to standard units like N or J.
+        Evaluates a unit expression and simplifies it.
         """
         try:
             result = ureg.parse_expression(expression).to_base_units()
-            simplified = result.to_compact()  # ← best for unit names like N, J, etc.
+            simplified = result.to_compact()  # Use compact notation when possible.
             return simplified
         except Exception as e:
             raise ValueError(f"Error evaluating expression with units: {expression} → {str(e)}")
 
-
-
     def solve_equation(self) -> str:
         try:
+            # Identify the unknown variable if not already found.
             if not self.unknown:
                 self.find_unknown_variable()
 
+            # Substitute known values into the right-hand side of the equation.
             rhs = self.parser.rhs
             substituted = self.substitute_values(rhs)
             result = self.evaluate_expression(substituted)
 
-            # Simplify unit to base/compact first
+            # Simplify the result to base units and then compact them.
             simplified = result.to_base_units().to_compact()
 
-            # Step 1: Force unit based on variable name
+            # Force preferred units based on the unknown variable
             preferred_units = {
                 "f": "newton",
                 "e": "joule",
                 "p": "watt",
-                "v": "volt",
+                "v": "volt",       # For voltage, now defined via [voltage]
                 "q": "coulomb",
                 "t": "second",
                 "m": "kilogram",
                 "a": "meter / second ** 2",
-                "s": "meter",     # displacement
+                "s": "meter",      # displacement
                 "i": "ampere",
                 "r": "ohm"
             }
 
-            try:
-                var = self.unknown.lower()
-                if var in preferred_units:
-                    simplified = simplified.to(preferred_units[var])
-            except Exception:
-                pass  # fallback to compact unit
-
-            # Step 2: (optional) Fallback match on unit expression
-            unit_fallback_map = {
-                "kilogram * meter / second ** 2": "newton",
-                "kilogram * meter ** 2 / second ** 2": "joule",
-                "kilogram * meter ** 2 / second ** 3": "watt"
-            }
-            unit_str = str(simplified.units)
-
-            if unit_str in unit_fallback_map:
+            var = self.unknown.lower()
+            forced_unit = preferred_units.get(var)
+            if forced_unit:
                 try:
-                    simplified = simplified.to(unit_fallback_map[unit_str])
+                    simplified = result.to(forced_unit)
                 except Exception:
-                    pass  # fallback silently
+                    try:
+                        simplified = result.to_reduced_units().to(forced_unit)
+                    except Exception:
+                        simplified = result  # Fallback if conversion fails
+
+            # Optional backup: check dimension fallback if needed.
+            dimensional_fallbacks = {
+                "[force]": "newton",
+                "[energy]": "joule",
+                "[power]": "watt",
+                "[voltage]": "volt",
+                "[current]": "ampere",
+                "[resistance]": "ohm",
+                "[mass]": "kilogram"
+            }
+
+            try:
+                for dim, unit in dimensional_fallbacks.items():
+                    if simplified.check(dim):
+                        simplified = simplified.to(unit)
+                        break
+            except DimensionalityError:
+                pass
 
             value = round(simplified.magnitude, 2)
             unit = str(simplified.units)
