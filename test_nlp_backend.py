@@ -21,3 +21,15 @@ print("Output:", ai.solve_from_natural_language(sentence3))
 sentence4 = "Find the mass when object is flying"
 print("\nInput:", sentence4)
 print("Output:", ai.solve_from_natural_language(sentence4))
+
+test_cases = [
+    "Find the force when mass is 10kg and acceleration is 2m/s^2",      # F = m * a
+    "Calculate energy when mass is 2kg and speed is 3e8m/s",            # E = m * v^2
+    "What is the voltage when current is 2A and resistance is 5 ohm",   # V = I * R
+    "Power when energy is 100J and time is 5s",                         # P = E / t
+    "Find the mass",                                                   # Should fail
+]
+
+for i, sentence in enumerate(test_cases, 1):
+    print(f"\nTest {i}: {sentence}")
+    print(ai.solve_from_natural_language(sentence))

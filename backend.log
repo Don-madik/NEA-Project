@@ -8,3 +8,5 @@
 2025-04-11 16:53:44,088 - ERROR - PhysicsAI Error: Error processing variable 'v' with value '3 e8m/s': 'e8m' is not defined in the unit registry
 2025-04-11 16:53:53,139 - ERROR - PhysicsAI Error: Error processing variable 'v' with value '3 e8m/s': 'e8m' is not defined in the unit registry
 2025-04-11 17:31:53,937 - ERROR - PhysicsAI Error: Error processing variable 'i' with value '2': 'int' object has no attribute 'to_base_units'
+2025-04-16 16:06:45,696 - ERROR - PhysicsAI Error: Error processing variable 'r' with value '5': 'int' object has no attribute 'to_base_units'
+2025-04-16 16:06:45,697 - ERROR - PhysicsAI Error: Error processing variable 'e' with value '100j': 'j' is not defined in the unit registry
