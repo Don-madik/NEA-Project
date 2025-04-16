@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-
+import re
 from Physics_solver.unit_store import UnitAwareVariableStore
 from Physics_solver.equation_parser import EquationParser
 from Physics_solver.equation_solver import EquationSolver

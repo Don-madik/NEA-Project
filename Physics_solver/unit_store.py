@@ -1,49 +1,77 @@
-# unit_store.py
-import pint
+from pint import UnitRegistry
+from pint.errors import UndefinedUnitError
 import re
-# Create a Pint unit registry.
-ureg = pint.UnitRegistry()
+
+ureg = UnitRegistry()
+
+def normalize_units(value: str) -> str:
+    """
+    Normalize compact units like '2A' to '2 ampere', '100J' to '100 joule', etc.
+    Handles scientific notation and works with upper/lower case.
+    """
+    value = value.strip()
+
+    # Fix scientific notation stuck to unit, e.g., 3e8m → 3e8 m
+    value = re.sub(r'(\de[+-]?\d)([a-zA-Z])', r'\1 \2', value)
+
+    # Normalize attached compact unit symbols (upper or lower case)
+    unit_mappings = {
+        r'(?<=\d)([aA])\b': ' ampere',
+        r'(?<=\d)([jJ])\b': ' joule',
+        r'(?<=\d)([nN])\b': ' newton',
+        r'(?<=\d)([wW])\b': ' watt',
+        r'(?<=\d)([cC])\b': ' coulomb',
+        r'(?<=\d)([vV])\b': ' volt',
+        r'(?<=\d)(ohms?)\b': ' ohm'
+    }
+
+    for pattern, replacement in unit_mappings.items():
+        value = re.sub(pattern, replacement, value)
+
+    # Optional replacements for aliases
+    value = value.replace("amps", "ampere").replace("amp", "ampere")
+    value = value.replace("Ω", "ohm")
+
+    return value.lower()
+
 
 class UnitAwareVariableStore:
-    def __init__(self, known_inputs: dict):
-        self.original = {}
+    def __init__(self, raw_inputs: dict[str, str]):
+        self.raw = raw_inputs
         self.converted = {}
-        self._process_inputs(known_inputs)
 
-    def _process_inputs(self, known_inputs):
-        """
-        Processes each known input by parsing with Pint.
-        Each value is converted to its SI base form.
-        """
-        for var, value in known_inputs.items():
+        for var, value in raw_inputs.items():
             try:
-                var = var.lower()  # Normalize variable names to lowercase.
-                # Insert a space between a digit and the unit 'A' if it's not part of scientific notation.
-                value = re.sub(r"(?<![eE])(\d)(A)\b", r"\1 \2", value)
-                # Insert a space between a digit and 'ohm' (case insensitive) if not part of scientific notation.
-                value = re.sub(r"(?<![eE])(\d)(ohm)\b", r"\1 \2", value, flags=re.IGNORECASE)
-                # Parse the string (e.g. "100 N", "9.8 m/s^2") using Pint.
-                q = ureg(value)
-                self.original[var] = q
-                # Convert to SI base units (e.g., newton, kilogram, meter, second, etc.).
-                q_si = q.to_base_units()
-                # Save as a tuple (magnitude, unit) for clarity.
-                self.converted[var] = (q_si.magnitude, str(q_si.units))
+                cleaned = normalize_units(str(value))
+
+                # Fallback: attach unit if value is bare number
+                if re.fullmatch(r"\d+(\.\d+)?", cleaned) and var in default_units:
+                    cleaned += f" {default_units[var]}"
+
+
+                qty = ureg(cleaned)
+                self.converted[var] = (qty.magnitude, qty.units)
+            except UndefinedUnitError as e:
+                raise ValueError(f"Unknown unit in variable '{var}' with value '{value}': {e}")
             except Exception as e:
                 raise ValueError(f"Error processing variable '{var}' with value '{value}': {e}")
 
-
-    def get_original(self, var: str):
-        """Returns the original Pint quantity for a variable."""
-        return self.original.get(var, None)
-
     def get_converted(self, var: str):
-        """Returns a tuple (magnitude, SI unit) for the given variable."""
-        return self.converted.get(var, (None, None))
-    
-    def as_dict(self) -> dict:
-        """
-        Returns a dictionary mapping variable names to their SI magnitudes.
-        This can be used by your equation solver.
-        """
-        return {var: val[0] for var, val in self.converted.items()}
+        return self.converted.get(var.lower(), (None, None))
+
+    def as_dict(self):
+        return {k.lower(): v for k, v in self.raw.items()}
+
+default_units = {
+    "f": "newton",
+    "e": "joule",
+    "p": "watt",
+    "v": "volt",
+    "q": "coulomb",
+    "t": "second",
+    "m": "kilogram",
+    "a": "meter/second**2",
+    "s": "meter",
+    "i": "ampere",
+    "r": "ohm"
+}

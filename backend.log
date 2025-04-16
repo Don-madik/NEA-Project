@@ -10,3 +10,38 @@
 2025-04-11 17:31:53,937 - ERROR - PhysicsAI Error: Error processing variable 'i' with value '2': 'int' object has no attribute 'to_base_units'
 2025-04-16 16:06:45,696 - ERROR - PhysicsAI Error: Error processing variable 'r' with value '5': 'int' object has no attribute 'to_base_units'
 2025-04-16 16:06:45,697 - ERROR - PhysicsAI Error: Error processing variable 'e' with value '100j': 'j' is not defined in the unit registry
+2025-04-16 16:16:06,666 - ERROR - PhysicsAI Error: Error processing variable 'v' with value '3 e8m/s': 'e8m' is not defined in the unit registry
+2025-04-16 16:16:06,678 - ERROR - PhysicsAI Error: Error processing variable 'v' with value '3 e8m/s': 'e8m' is not defined in the unit registry
+2025-04-16 16:16:06,678 - ERROR - PhysicsAI Error: Error processing variable 'r' with value '5': 'int' object has no attribute 'to_base_units'
+2025-04-16 16:16:06,679 - ERROR - PhysicsAI Error: Error processing variable 'e' with value '100 j': 'j' is not defined in the unit registry
+2025-04-16 16:20:40,525 - ERROR - PhysicsAI Error: Error processing variable 'r' with value '5': 'int' object has no attribute 'to_base_units'
+2025-04-16 16:20:40,526 - ERROR - PhysicsAI Error: Error processing variable 'e' with value '100 j': 'j' is not defined in the unit registry
+2025-04-16 16:25:02,709 - ERROR - PhysicsAI Error: Error processing variable 'r' with value '5': 'int' object has no attribute 'to_base_units'
+2025-04-16 16:25:02,712 - ERROR - PhysicsAI Error: Error processing variable 'e' with value '100 j': 'j' is not defined in the unit registry
+2025-04-16 16:25:24,520 - ERROR - PhysicsAI Error: Error processing variable 'r' with value '5': 'int' object has no attribute 'to_base_units'
+2025-04-16 16:25:24,522 - ERROR - PhysicsAI Error: Error processing variable 'e' with value '100 j': 'j' is not defined in the unit registry
+2025-04-16 16:27:38,675 - ERROR - PhysicsAI Error: Error processing variable 'm' with value '10kg': look-behind requires fixed-width pattern
+2025-04-16 16:27:38,676 - ERROR - PhysicsAI Error: Error processing variable 'm' with value '2kg': look-behind requires fixed-width pattern
+2025-04-16 16:27:38,677 - ERROR - PhysicsAI Error: Error processing variable 'i' with value '2a': look-behind requires fixed-width pattern
+2025-04-16 16:27:38,679 - ERROR - PhysicsAI Error: Error processing variable 'm' with value '10kg': look-behind requires fixed-width pattern
+2025-04-16 16:27:38,680 - ERROR - PhysicsAI Error: Error processing variable 'm' with value '2kg': look-behind requires fixed-width pattern
+2025-04-16 16:27:38,680 - ERROR - PhysicsAI Error: Error processing variable 'i' with value '2a': look-behind requires fixed-width pattern
+2025-04-16 16:27:38,681 - ERROR - PhysicsAI Error: Error processing variable 't' with value '5s': look-behind requires fixed-width pattern
+2025-04-16 16:33:31,813 - ERROR - PhysicsAI Error: Error evaluating expression with units: (2 * ampere) * (5 * ohm) \u2192 maximum recursion depth exceeded while calling a Python object
+2025-04-16 16:33:31,821 - ERROR - PhysicsAI Error: Error evaluating expression with units: (2 * ampere) * (5 * ohm) \u2192 maximum recursion depth exceeded while calling a Python object
+2025-04-16 16:39:39,988 - ERROR - PhysicsAI Error: Error evaluating expression with units: (2 * ampere) * (5 * ohm) \u2192 maximum recursion depth exceeded while calling a Python object
+2025-04-16 16:39:39,992 - ERROR - PhysicsAI Error: Error evaluating expression with units: (2 * ampere) * (5 * ohm) \u2192 maximum recursion depth exceeded while calling a Python object
+2025-04-16 16:39:57,706 - ERROR - PhysicsAI Error: Error evaluating expression with units: (2 * ampere) * (5 * ohm) \u2192 maximum recursion depth exceeded while calling a Python object
+2025-04-16 16:39:57,711 - ERROR - PhysicsAI Error: Error evaluating expression with units: (2 * ampere) * (5 * ohm) \u2192 maximum recursion depth exceeded while calling a Python object
+2025-04-16 16:45:11,487 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 16:45:11,493 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 16:47:34,110 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 16:47:34,116 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:00:58,321 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:00:58,327 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:03:05,518 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:03:05,525 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:05:00,923 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:05:00,929 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:05:23,656 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
+2025-04-16 17:05:23,662 - ERROR - PhysicsAI Error: Unknown unit in variable 'i' with value '2a': 'ampereere' is not defined in the unit registry
