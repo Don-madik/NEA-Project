@@ -1,0 +1,80 @@
+---
+config:
+  theme: neo
+  look: neo
+---
+flowchart LR
+  subgraph UI Layer
+    direction TB
+    UI_Input["User Input\nequation or sentence\n(string)"]
+    UI_NLP["Parse NLP Button\non_release"]
+    UI_Generate["Generate Fields\non_release"]
+    UI_Solve["Solve Button\non_release"]
+    Display["Update result_label.text"]
+  end
+  subgraph Parsing Layer
+    direction TB
+    D1{"Contains '='?"}
+    EP["EquationParser(equation: str)"]
+    EP1["validate_format()\n(throws ValueError→log)"]
+    EP2{"parse_equation()\n• split lhs, rhs\n• regex extract variables"}
+    ParsedEq["(lhs, rhs, variables)"]
+    NP["NLPProcessor.parse(sentence: str)"]
+    NP1["regex extract values→ Dict[var→raw]"]
+    NP2["template match→ (equation, knowns)"]
+    ParsedNLP["(equation, knowns)"]
+  end
+  subgraph Solver Layer
+    direction TB
+    US["UnitAwareVariableStore(raw_inputs)"]
+    UN["normalize_units():\n– scientific-notation fix\n– unit-symbol mappings"]
+    Qty["ureg(cleaned)\n→ Quantity(mag, unit)"]
+    StoreEnd["store.converted\nDict[var→(value,unit)]"]
+    ES["EquationSolver(parser, store)"]
+    EU{"find_unknown_variable?"}
+    EV["substitute_values(rhs)\n(replace var→(value*unit))"]
+    EE["evaluate_expression(expr)\n(parse→to_base→to_compact)"]
+    EC["force_preferred_units()\n& dimension fallbacks"]
+    Format["format_result()\n(round & stringify)"]
+  end
+  subgraph Testing & Logging
+    direction TB
+    T1["testnlp.py\n(unit tests on NLP)"]
+    T2["test_nlp_backend.py\n(integration tests)"]
+    Log["backend.log\n(logging.error)"]
+  end
+  UI_Input --> D1
+  UI_NLP --> NP
+  UI_NLP -->|auto-fill→| ParsedEq
+  UI_Generate -->|preprocess_equation| EP2
+  D1 -- Yes --> EP
+  D1 -- No --> NP
+  EP --> EP1
+  EP1 --> EP2
+  EP2 --> ParsedEq
+  NP --> NP1
+  NP1 --> NP2
+  NP2 --> ParsedNLP
+  ParsedEq & ParsedNLP --> US
+  US --> UN
+  UN --> Qty
+  Qty --> StoreEnd
+  StoreEnd --> ES
+  ES --> EU
+  EU -- 1 unknown --> EV
+  EU -- 0 or >1 --> Log
+  EV --> EE
+  EE --> EC
+  EC --> Format
+  Format --> UI_Solve
+  UI_Solve --> Display
+  EP1 & EE & EU -->|on error| Log
+  NP & EP & US & ES --> T1 & T2
+  classDef uiLayer fill:#e3f2fd,stroke:#90caf9;
+  classDef parseLayer fill:#f3e5f5,stroke:#ce93d8;
+  classDef solverLayer fill:#e8f5e9,stroke:#a5d6a7;
+  classDef testLog fill:#fff9c4,stroke:#fff176;
+  class UI_Input,UI_NLP,UI_Generate,UI_Solve,Display uiLayer
+  class D1,EP,EP1,EP2,ParsedEq,NP,NP1,NP2,ParsedNLP parseLayer
+  class US,UN,Qty,StoreEnd,ES,EU,EV,EE,EC,Format solverLayer
+  class T1,T2,Log testLog
