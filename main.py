@@ -8,7 +8,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.scrollview import MDScrollView
 
 from backend import PhysicsAI
-from Physics_solver.NLP_processing import NLPProcessor  # ✅ Import your NLP module
+from Physics_solver.NLP_processing import NLPProcessor
 
 def preprocess_equation(equation: str) -> str:
     equation = equation.replace("^", "**")
@@ -25,7 +25,7 @@ class IntegratedPhysicsSolverApp(MDApp):
 
         # NLP input
         self.nlp_input = MDTextField(
-            hint_text="Or enter a sentence (e.g., 'Find the force when mass is 5kg and acceleration is 3m/s^2')",
+            hint_text="Enter a sentence (e.g., 'Find the force when mass is 5kg and acceleration is 3m/s^2')",
             size_hint=(1, None),
             height=80
         )
@@ -42,7 +42,7 @@ class IntegratedPhysicsSolverApp(MDApp):
 
         # Equation input
         self.equation_input = MDTextField(
-            hint_text="Enter equation (e.g., F = m c^2 or F = m c)",
+            hint_text="Enter equation (e.g., E = m c^2 or F = m c)",
             size_hint=(1, None),
             height=40
         )
