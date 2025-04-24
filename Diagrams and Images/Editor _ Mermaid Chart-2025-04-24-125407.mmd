@@ -1,0 +1,15 @@
+---
+config:
+  theme: mc
+  layout: elk
+---
+flowchart TD
+    Start(["User Input"]) --> Decision{"Contains = ?"}
+    Decision -- Yes --> EquationParser["EquationParser"]
+    Decision -- No --> NLPProcessor["NLPProcessor"]
+    EquationParser --> ParsedEquation["Parsed Equation"]
+    NLPProcessor --> ParsedEquation
+    ParsedEquation --> UnitProcessor["Unit Processor"]
+    UnitProcessor --> EquationSolver["Equation Solver"]
+    EquationSolver -- Success --> ResultDisplay["Result Display"]
+    EquationSolver -- Error --> ErrorLogger["Error Logger"]
